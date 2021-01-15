@@ -26,3 +26,12 @@
 
 13:34:24 asa1 :  xfdg
 
+14:38:05 John_Connor : test
+
+Ник не может содержать пробелов
+Ваш ник изменен на qwe
+Ваш ник изменен на John_Connor
+14:59:31 John_Connor : pop
+
+[John_Connor] private [John_Connor] : rr
+

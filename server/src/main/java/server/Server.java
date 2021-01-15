@@ -10,6 +10,8 @@ import java.util.Vector;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Server {
 
@@ -18,15 +20,14 @@ public class Server {
     Socket socket = null;
     List<ClientHandler> clients;
     private AuthService authService;
-    ///==============///
     private ExecutorService executorService;
-    ///==============///
 
-    ///==============///
+    private static final Logger loggerServer = Logger.getLogger("org.example.Server");
+
     public ExecutorService getExecutorService() {
         return executorService;
     }
-    ///==============///
+
 
     public Server() {
         clients = new Vector<>();
@@ -34,17 +35,21 @@ public class Server {
         executorService = Executors.newFixedThreadPool(5000);
         // /==============///
         if (!SQLHandler.connect()) {
+            loggerServer.log(Level.SEVERE, "Не удалось подключиться к БД");
             throw new RuntimeException("Не удалось подключиться к БД");
+
         }
         authService = new DBAuthServise();
 
         try {
             server = new ServerSocket(PORT);
-            System.out.println("Сервер запущен");
+          //  System.out.println("Сервер запущен");
+            loggerServer.log(Level.INFO, "Сервер запущен");
 
             while (true) {
                 socket = server.accept();
-                System.out.println("Клиент подключился");
+               // System.out.println("Клиент подключился");
+                loggerServer.log(Level.INFO, "Клиент подключился");
                 new ClientHandler(this, socket);
             }
         } catch (IOException e) {
