@@ -4,6 +4,10 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.logging.FileHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ClientHandler {
 
@@ -13,9 +17,22 @@ public class ClientHandler {
     DataOutputStream out;
     private String nickname;
     private String login;
+    private static final Logger logger = Logger.getLogger(ClientHandler.class.getName());
+    Handler fileHandler;
+
+    {
+        try {
+            fileHandler = new FileHandler("log_%g", 10*1024, 20, true);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
 
     public ClientHandler(Server server, Socket socket) {
+        logger.addHandler(fileHandler);
         try {
             this.server = server;
             this.socket = socket;
@@ -43,7 +60,8 @@ public class ClientHandler {
                                         nickname = newNick;
                                         sendMsg("/authok " + nickname);
                                         server.subscribe(this);
-                                        System.out.println("Клиент " + nickname + " подключился");
+                                        //System.out.println("Клиент " + nickname + " подключился");
+                                        logger.log(Level.INFO, "Клиент " + nickname + " подключился");
                                         socket.setSoTimeout(0);
                                         break;
                                     }else{
@@ -56,6 +74,7 @@ public class ClientHandler {
 
                             if (str.startsWith("/reg")){
                                 String[] token = str.split("\\s");
+                                logger.log(Level.INFO, "Клиент пытается зарегистрироваться");
                                 if(token.length < 4){
                                     continue;
                                 }
@@ -85,6 +104,7 @@ public class ClientHandler {
                                     if (token.length <3){
                                         continue;
                                     }
+                                    logger.log(Level.INFO, "Клиент " + nickname + " отправляет личное сообщение");
                                     server.privateCastMsg(this, token[1], token[2]);
                                 }
 
@@ -100,8 +120,10 @@ public class ClientHandler {
                                     if (server.getAuthService().changeNick(this.nickname, token[1])) {
                                         sendMsg("/yournickis " + token[1]);
                                         sendMsg("Ваш ник изменен на " + token[1]);
+                                        logger.log(Level.INFO, "Клиент " + nickname + " сменил ник на " + token[1]);
                                         this.nickname = token[1];
                                         server.broadClientList();
+
                                     } else {
                                         sendMsg("Не удалось изменить ник. Ник " + token[1] + " уже существует");
                                     }
@@ -114,7 +136,8 @@ public class ClientHandler {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }finally {
-                        System.out.println("Клиент отключился");
+                        //System.out.println("Клиент отключился");
+                        logger.log(Level.INFO, "Клиент отключился");
                         server.unsubscribe(this);
                         try {
                             socket.close();
